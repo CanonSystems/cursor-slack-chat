@@ -8,6 +8,8 @@ Chat with your team on Slack directly from Cursor. Message team members and chan
 - `slack_update_message` - Edit existing messages  
 - `slack_get_thread_replies` - Check if someone replied to your message
 - `slack_get_channel_history` - See recent messages in a channel
+- `slack_list_all_channels` - List ALL channels (public + private the bot is in)
+- `slack_find_channel` - Find a channel by name and get its ID
 
 ## Quick Install
 

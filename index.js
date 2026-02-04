@@ -53,6 +53,36 @@ async function getChannelHistory(channel_id, limit = 10) {
   return response.json();
 }
 
+async function listAllChannels(limit = 200, types = "public_channel,private_channel") {
+  const params = new URLSearchParams({
+    types: types,
+    exclude_archived: "true",
+    limit: Math.min(limit, 1000).toString(),
+  });
+  const response = await fetch(
+    `https://slack.com/api/conversations.list?${params}`,
+    { headers }
+  );
+  return response.json();
+}
+
+async function findChannelByName(name) {
+  // Search in public and private channels
+  const result = await listAllChannels(1000);
+  if (!result.ok) return result;
+  
+  const searchName = name.toLowerCase().replace(/^#/, '');
+  const channel = result.channels.find(ch => 
+    ch.name.toLowerCase() === searchName ||
+    ch.name.toLowerCase().includes(searchName)
+  );
+  
+  if (channel) {
+    return { ok: true, channel };
+  }
+  return { ok: false, error: "channel_not_found", searched: searchName };
+}
+
 // Tool definitions
 const tools = [
   {
@@ -132,6 +162,39 @@ const tools = [
       required: ["channel_id"],
     },
   },
+  {
+    name: "slack_list_all_channels",
+    description: "List ALL channels including private channels the bot is a member of. Returns channel names and IDs.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: {
+          type: "number",
+          description: "Maximum number of channels to return (default 200, max 1000)",
+          default: 200,
+        },
+        types: {
+          type: "string",
+          description: "Comma-separated channel types: public_channel, private_channel, mpim, im (default: public_channel,private_channel)",
+          default: "public_channel,private_channel",
+        },
+      },
+    },
+  },
+  {
+    name: "slack_find_channel",
+    description: "Find a channel by name (searches both public and private channels). Returns the channel ID if found.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: {
+          type: "string",
+          description: "The channel name to search for (with or without #)",
+        },
+      },
+      required: ["name"],
+    },
+  },
 ];
 
 // Tool handlers
@@ -164,6 +227,17 @@ async function handleToolCall(name, args) {
         throw new Error("Missing required argument: channel_id");
       }
       return await getChannelHistory(channel_id, limit || 10);
+    }
+    case "slack_list_all_channels": {
+      const { limit, types } = args;
+      return await listAllChannels(limit || 200, types || "public_channel,private_channel");
+    }
+    case "slack_find_channel": {
+      const { name } = args;
+      if (!name) {
+        throw new Error("Missing required argument: name");
+      }
+      return await findChannelByName(name);
     }
     default:
       throw new Error(`Unknown tool: ${name}`);

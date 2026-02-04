@@ -57,11 +57,45 @@ Your Slack bot token needs these OAuth scopes:
 |-------|---------|
 | `chat:write` | Post, edit, and delete messages |
 | `channels:history` | Read messages in public channels |
-| `groups:history` | Read messages in private channels |
-| `im:history` | Read direct messages |
 | `channels:read` | List public channels |
+| `groups:history` | Read messages in private channels |
 | `groups:read` | List private channels the bot is in |
+| `im:history` | Read direct messages |
+| `im:read` | List DM conversations |
+| `reactions:write` | Add emoji reactions |
 | `users:read` | Look up user info |
+
+### Adding scopes
+1. Go to https://api.slack.com/apps
+2. Select your app → **OAuth & Permissions**
+3. Add scopes under **Bot Token Scopes**
+4. **Reinstall** the app to your workspace
+
+## Sharing the Bot Token with Your Team
+
+The `SLACK_BOT_TOKEN` is sensitive. **Never commit it to a repo.**
+
+### Recommended: Slack Slash Command
+Set up a `/cursor-setup` slash command in Slack that responds with the token and setup instructions. This way team members can self-serve directly in Slack.
+
+### Alternative Methods
+- **Password manager** (1Password, LastPass) - Store in a shared team vault
+- **Private wiki** - Document in Confluence/Notion with restricted access
+- **Direct share** - Team lead DMs the token to new members
+
+### Environment Variables
+Store the token in your shell profile (`~/.zshrc` or `~/.bashrc`):
+```bash
+export SLACK_BOT_TOKEN="xoxb-your-token"
+```
+
+Then reference it in `mcp.json`:
+```json
+"env": {
+  "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+}
+```
+Note: Cursor may not expand env vars in mcp.json - test this first.
 
 ## Usage
 

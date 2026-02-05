@@ -2,7 +2,7 @@
 # Cursor Slack Chat - Setup Script
 #
 # Usage:
-#   curl -sL https://raw.githubusercontent.com/familyoneInc/cursor-slack-chat/main/setup.sh | bash
+#   curl -sL https://raw.githubusercontent.com/CanonSystems/cursor-slack-chat/main/setup.sh | bash
 
 set -e
 
@@ -30,7 +30,7 @@ if [[ "$IS_ADMIN" =~ ^[Yy]$ ]]; then
   echo "1. Go to https://api.slack.com/apps"
   echo "2. Click 'Create New App' → 'From an app manifest'"
   echo "3. Paste the manifest from:"
-  echo "   https://raw.githubusercontent.com/familyoneInc/cursor-slack-chat/main/slack-app-manifest.yaml"
+  echo "   https://raw.githubusercontent.com/CanonSystems/cursor-slack-chat/main/slack-app-manifest.yaml"
   echo "4. Install to your workspace"
   echo "5. Copy the Bot User OAuth Token (starts with xoxb-)"
   echo ""
@@ -52,7 +52,7 @@ TOKEN: $BOT_TOKEN
 SETUP STEPS:
 
 1. Open Terminal and run:
-   curl -sL https://raw.githubusercontent.com/familyoneInc/cursor-slack-chat/main/setup.sh | bash
+   curl -sL https://raw.githubusercontent.com/CanonSystems/cursor-slack-chat/main/setup.sh | bash
 
 2. When asked "Are you the team admin?" answer: n
 
@@ -105,7 +105,7 @@ if [ -d "$INSTALL_DIR" ]; then
   git pull --quiet 2>/dev/null || true
 else
   mkdir -p "$(dirname "$INSTALL_DIR")"
-  git clone --quiet https://github.com/familyoneInc/cursor-slack-chat.git "$INSTALL_DIR"
+  git clone --quiet https://github.com/CanonSystems/cursor-slack-chat.git "$INSTALL_DIR"
   cd "$INSTALL_DIR"
 fi
 

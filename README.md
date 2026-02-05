@@ -101,13 +101,13 @@ The bot can only see private channels it's been invited to:
 ### Quick Install
 
 ```bash
-curl -sL https://raw.githubusercontent.com/familyoneInc/cursor-slack-chat/main/setup.sh | bash
+curl -sL https://raw.githubusercontent.com/CanonSystems/cursor-slack-chat/main/setup.sh | bash
 ```
 
 ### Manual Install
 
 ```bash
-git clone https://github.com/familyoneInc/cursor-slack-chat.git ~/.cursor/mcp-servers/cursor-slack-chat
+git clone https://github.com/CanonSystems/cursor-slack-chat.git ~/.cursor/mcp-servers/cursor-slack-chat
 cd ~/.cursor/mcp-servers/cursor-slack-chat
 npm install
 ```
@@ -156,7 +156,7 @@ Store the token in a file within Slack itself:
    Token: xoxb-your-actual-token-here
    
    Setup:
-   1. Run: curl -sL https://raw.githubusercontent.com/familyoneInc/cursor-slack-chat/main/setup.sh | bash
+   1. Run: curl -sL https://raw.githubusercontent.com/CanonSystems/cursor-slack-chat/main/setup.sh | bash
    2. Add the token above to ~/.cursor/mcp.json
    3. Restart Cursor
    ```

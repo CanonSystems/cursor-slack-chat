@@ -8,10 +8,12 @@ Chat with your team on Slack directly from Cursor. Message team members and chan
 |------|-------------|
 | `slack_list_all_channels` | List ALL channels (public + private) |
 | `slack_find_channel` | Search for a channel by name |
+| `slack_post_message` | Post a new message to a channel or DM |
 | `slack_delete_message` | Delete messages |
 | `slack_update_message` | Edit existing messages |
 | `slack_get_channel_history_extended` | Read channel messages (inc. private) |
 | `slack_get_thread_replies_extended` | Check thread replies |
+| `slack_get_file` | Get file metadata and optionally image content (base64) from messages |
 
 **Why this exists:** Cursor's built-in Slack MCP only lists public channels and has limited functionality. This MCP adds private channel support and message management.
 
@@ -53,6 +55,7 @@ oauth_config:
       - groups:read
       - groups:history
       - users:read
+      - files:read
       - reactions:write
       - im:read
       - im:history
@@ -80,6 +83,7 @@ settings:
 | `groups:read` | List private channels |
 | `groups:history` | Read private channel messages |
 | `users:read` | Look up users for @mentions |
+| `files:read` | Read file metadata and content (e.g. images in messages) |
 | `reactions:write` | Add emoji reactions |
 | `im:read` | List DM conversations |
 | `im:history` | Read DMs |

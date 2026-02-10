@@ -2,6 +2,7 @@
 
 const { Server } = require("@modelcontextprotocol/sdk/server/index.js");
 const { StdioServerTransport } = require("@modelcontextprotocol/sdk/server/stdio.js");
+const { ListToolsRequestSchema, CallToolRequestSchema } = require("@modelcontextprotocol/sdk/types.js");
 
 const botToken = process.env.SLACK_BOT_TOKEN;
 
@@ -30,6 +31,21 @@ async function updateMessage(channel_id, ts, text) {
     body: JSON.stringify({
       channel: channel_id,
       ts: ts,
+      text: text,
+    }),
+  });
+  return response.json();
+}
+
+async function postMessage(channel_id, text) {
+  const response = await fetch("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${botToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      channel: channel_id,
       text: text,
     }),
   });
@@ -107,6 +123,40 @@ async function getThreadReplies(channel_id, thread_ts) {
   return response.json();
 }
 
+/**
+ * Get file metadata and optionally image content (base64) from Slack.
+ * Requires files:read scope. Use file_id from message.files[].id in channel history.
+ */
+async function getFile(file_id, include_image_content = false) {
+  const infoRes = await fetch(`https://slack.com/api/files.info?file=${encodeURIComponent(file_id)}`, {
+    headers: { Authorization: `Bearer ${botToken}` },
+  });
+  const info = await infoRes.json();
+  if (!info.ok) {
+    return info;
+  }
+  const f = info.file;
+  const result = {
+    ok: true,
+    file_id: f.id,
+    name: f.name,
+    mimetype: f.mimetype,
+    size: f.size,
+    url_private: f.url_private || null,
+  };
+  if (include_image_content && f.mimetype && f.mimetype.startsWith("image/") && f.url_private) {
+    const contentRes = await fetch(f.url_private, {
+      headers: { Authorization: `Bearer ${botToken}` },
+    });
+    if (contentRes.ok) {
+      const buf = await contentRes.arrayBuffer();
+      result.content_base64 = Buffer.from(buf).toString("base64");
+      result.content_data_url = `data:${f.mimetype};base64,${result.content_base64}`;
+    }
+  }
+  return result;
+}
+
 async function main() {
   if (!botToken) {
     console.error("Please set SLACK_BOT_TOKEN environment variable");
@@ -118,7 +168,7 @@ async function main() {
     { capabilities: { tools: {} } }
   );
 
-  server.setRequestHandler({ method: "tools/list" }, async () => ({
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
       {
         name: "slack_delete_message",
@@ -158,6 +208,24 @@ async function main() {
             },
           },
           required: ["channel_id", "ts", "text"],
+        },
+      },
+      {
+        name: "slack_post_message",
+        description: "Post a new message to a Slack channel or DM",
+        inputSchema: {
+          type: "object",
+          properties: {
+            channel_id: {
+              type: "string",
+              description: "The ID of the channel or DM (e.g. C0ADWAWSUHG or D12345)",
+            },
+            text: {
+              type: "string",
+              description: "Message text (markdown supported)",
+            },
+          },
+          required: ["channel_id", "text"],
         },
       },
       {
@@ -223,10 +291,28 @@ async function main() {
           required: ["channel_id", "thread_ts"],
         },
       },
+      {
+        name: "slack_get_file",
+        description: "Get file metadata and optionally image content from Slack. Use file_id from message.files[].id (e.g. from channel history). Requires files:read scope. Set include_image_content=true to get base64 image data.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            file_id: {
+              type: "string",
+              description: "Slack file ID (from message.files[].id)",
+            },
+            include_image_content: {
+              type: "boolean",
+              description: "If true and file is an image, include content_base64 and content_data_url",
+            },
+          },
+          required: ["file_id"],
+        },
+      },
     ],
   }));
 
-  server.setRequestHandler({ method: "tools/call" }, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
     
     switch (name) {
@@ -245,6 +331,15 @@ async function main() {
           throw new Error("Missing required arguments: channel_id, ts, and text");
         }
         const response = await updateMessage(channel_id, ts, text);
+        return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] };
+      }
+      
+      case "slack_post_message": {
+        const { channel_id, text } = args;
+        if (!channel_id || !text) {
+          throw new Error("Missing required arguments: channel_id and text");
+        }
+        const response = await postMessage(channel_id, text);
         return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] };
       }
       
@@ -278,6 +373,15 @@ async function main() {
           throw new Error("Missing required arguments: channel_id and thread_ts");
         }
         const response = await getThreadReplies(channel_id, thread_ts);
+        return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] };
+      }
+      
+      case "slack_get_file": {
+        const { file_id, include_image_content } = args;
+        if (!file_id) {
+          throw new Error("Missing required argument: file_id");
+        }
+        const response = await getFile(file_id, include_image_content === true);
         return { content: [{ type: "text", text: JSON.stringify(response, null, 2) }] };
       }
       

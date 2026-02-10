@@ -36,10 +36,13 @@ oauth_config:
       # Users
       - users:read          # Look up user info for @mentions
       
+      # Files (for retrieving images/attachments from messages)
+      - files:read          # Read file metadata and content (e.g. images in messages)
+      
       # Optional but useful
       - reactions:write     # Add emoji reactions
-      - im:read            # List DM conversations
-      - im:history         # Read direct messages
+      - im:read             # List DM conversations
+      - im:history          # Read direct messages
 
 settings:
   org_deploy_enabled: false
